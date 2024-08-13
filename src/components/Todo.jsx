@@ -1,21 +1,49 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import todo_icon from '../assets/todo_icon.png'
 import TodoItems from './TodoItems'
 
 const Todo = () => {
 
-const [todoList, setTodoList] = useState([]);
+const [todoList, setTodoList] = useState(localStorage.getItem('todos') ? JSON.parse(localStorage.getItem('todos')) : []);
 
 const inputRef = useRef();
 
 const add = () => {
   const inputText = inputRef.current.value.trim();
+
+  if (inputText === '') {
+    return alert('Please enter a task!');
+  }
+
   const newTodo = {
     id: Date.now(),
     text: inputText,
     isComplete: false,
   }
+  setTodoList((prev) => [...prev, newTodo]);
+  inputRef.current.value = '';
 }
+
+const deleteTodo = (id) => {
+  setTodoList((prvTodos) => {
+    return prvTodos.filter((todo) => todo.id !== id);
+  })
+}
+
+const toggle = (id) => {
+  setTodoList((prvTodos) => {
+    return prvTodos.map((todo) => {
+      if (todo.id === id) {
+        return {...todo, isComplete: !todo.isComplete};
+      }
+      return todo;
+    })
+  })
+}
+
+useEffect(() => {
+  localStorage.setItem('todos', JSON.stringify(todoList));
+}, [todoList])
 
   return (
     <div className='w-full h-screen flex justify-center items-center'>
@@ -35,7 +63,9 @@ const add = () => {
 
           {/* -------- todo list -------- */}
           <div>
-            <TodoItems text="Learning Backend"/>
+            {todoList.map((item, index)=>{
+              return <TodoItems key={index} text={item.text} id={item.id} isComplete={item.isComplete} deleteTodo={deleteTodo} toggle={toggle}/>
+            })}
           </div>
 
         </div>
